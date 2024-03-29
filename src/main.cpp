@@ -61,14 +61,31 @@ struct DirLight {
     glm::vec3 specular;
 };
 
+struct SpotLight {
+    glm::vec3 position;
+    glm::vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 backpackPosition = glm::vec3(0, 0, 0);
+    PointLight pointLight[2];
+    DirLight dirLight;
+    SpotLight spotLight;
+    glm::vec3 backpackPosition = glm::vec3(0.0f);
     float backpackScale = 1.0f;
-    PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -154,7 +171,9 @@ int main() {
     if (programState->ImGuiEnabled) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
-    // Init Imgui
+
+
+    //Init Imgui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -193,16 +212,49 @@ int main() {
     Model jellyfishModel("resources/objects/jellyfish/scene.gltf");
     jellyfishModel.SetShaderTextureNamePrefix("material.");
 
+    Model anglerfishModel("resources/objects/anglerfish/scene.gltf");
+    jellyfishModel.SetShaderTextureNamePrefix("material.");
 
-    PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
-    pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
-    pointLight.constant = 1.0f;
-    pointLight.linear = 0.35f;
-    pointLight.quadratic = 0.032f;
+    // setting lights
+
+    PointLight& jellyfishPointLight = programState->pointLight[0];
+    jellyfishPointLight.position = glm::vec3(-16.0f, 11.0f, -6.0f);
+    jellyfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
+    jellyfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    jellyfishPointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+    jellyfishPointLight.constant = 1.0f;
+    jellyfishPointLight.linear = 0.027f;
+    jellyfishPointLight.quadratic = 0.0028f;
+
+    PointLight& anglerfishPointLight = programState->pointLight[1];
+    anglerfishPointLight.position = glm::vec3(0.0f, 3.0f, 51.0f);
+    anglerfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
+    anglerfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    anglerfishPointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+    anglerfishPointLight.constant = 1.0f;
+    anglerfishPointLight.linear = 0.027f;
+    anglerfishPointLight.quadratic = 0.0028f;
+
+    DirLight& dirLight = programState->dirLight;
+    dirLight.direction = glm::vec3(0.0f, -1.0f, 0.15f);
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+
+
+    SpotLight& spotLight = programState->spotLight;
+    spotLight.position = programState->camera.Position;
+    spotLight.direction = programState->camera.Front;
+    spotLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    spotLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09;
+    spotLight.quadratic = 0.032;
+    spotLight.cutOff = glm::cos(glm::radians(12.5f));
+    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+
 
 
     //********************************************************************************************************
@@ -417,22 +469,46 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         modelShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-        modelShader.setVec3("pointLight.position", pointLight.position);
-        modelShader.setVec3("pointLight.ambient", pointLight.ambient);
-        modelShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        modelShader.setVec3("pointLight.specular", pointLight.specular);
-        modelShader.setFloat("pointLight.constant", pointLight.constant);
-        modelShader.setFloat("pointLight.linear", pointLight.linear);
-        modelShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+
+        //light inside of jellyfish moves as jellyfish moves
+        jellyfishPointLight.position = glm::vec3(-15.0f, 4.0f + 3*sin(0.5*(float)glfwGetTime()), -5.0f);
+        modelShader.setVec3("pointLights[0].position", jellyfishPointLight.position);
+        modelShader.setVec3("pointLights[0].ambient", jellyfishPointLight.ambient);
+        modelShader.setVec3("pointLights[0].diffuse", jellyfishPointLight.diffuse);
+        modelShader.setVec3("pointLights[0].specular", jellyfishPointLight.specular);
+        modelShader.setFloat("pointLights[0].constant", jellyfishPointLight.constant);
+        modelShader.setFloat("pointLights[0].linear", jellyfishPointLight.linear);
+        modelShader.setFloat("pointLights[0].quadratic", jellyfishPointLight.quadratic);
+
+
+        modelShader.setVec3("pointLights[1].position", anglerfishPointLight.position);
+        modelShader.setVec3("pointLights[1].ambient", anglerfishPointLight.ambient);
+        modelShader.setVec3("pointLights[1].diffuse", anglerfishPointLight.diffuse);
+        modelShader.setVec3("pointLights[1].specular", anglerfishPointLight.specular);
+        modelShader.setFloat("pointLights[1].constant", anglerfishPointLight.constant);
+        modelShader.setFloat("pointLights[1].linear", anglerfishPointLight.linear);
+        modelShader.setFloat("pointLights[1].quadratic", anglerfishPointLight.quadratic);
+
         modelShader.setVec3("viewPosition", programState->camera.Position);
         modelShader.setFloat("material.shininess", 32.0f);
 
 
-        modelShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        modelShader.setVec3("dirLight.ambient", 0.3f, 0.3f, 0.3f);
-        modelShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        modelShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        modelShader.setVec3("dirLight.direction", dirLight.direction);
+        modelShader.setVec3("dirLight.ambient", dirLight.ambient);
+        modelShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        modelShader.setVec3("dirLight.specular", dirLight.specular);
+
+
+        modelShader.setVec3("spotLight.position",programState->camera.Position);
+        modelShader.setVec3("spotLight.direction", programState->camera.Front);
+        modelShader.setVec3("spotLight.ambient", spotLight.ambient);
+        modelShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        modelShader.setVec3("spotLight.specular", spotLight.specular);
+        modelShader.setFloat("spotLight.constant", spotLight.constant);
+        modelShader.setFloat("spotLight.linear", spotLight.linear);
+        modelShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        modelShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        modelShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
 
         // view/projection transformations
@@ -462,10 +538,10 @@ int main() {
         //render fish
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 5.0f, 10.0f));
-        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.2*cos(4*(float)glfwGetTime()), 10.0f));
+        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::rotate(model, glm::radians(10.0f - 5*sin(5*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(2.0f));
 
         modelShader.setMat4("model", model);
@@ -475,10 +551,10 @@ int main() {
         //render fish2
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(8.0f, 2.0f, 15.0f));
-        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::translate(model,glm::vec3(8.0f, 2.0f + 0.5*cos((float)glfwGetTime()), 15.0f));
+        model = glm::rotate(model, glm::radians(0.0f - 2*sin((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-90.0f + 8*sin(5*(float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f - 3*sin((float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
         modelShader.setMat4("model", model);
@@ -488,7 +564,7 @@ int main() {
         //render jellyfish
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-15.0f, 4.0f, -5.0f));
+        model = glm::translate(model,glm::vec3(-15.0f, 4.0f + 3*sin(0.5*(float)glfwGetTime()), -5.0f));
         model = glm::rotate(model, glm::radians(-100.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -501,14 +577,27 @@ int main() {
         //render shark
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 10.0f, 20.0f));
+        model = glm::translate(model,glm::vec3(10.0f, 10.0f + sin((float)glfwGetTime()), 20.0f));
         //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::rotate(model, glm::radians(20.0f - 10*cos((float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
         modelShader.setMat4("model", model);
         sharkModel.Draw(modelShader);
+
+
+        //render anglerfish
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(0.0f, -3.0f, 70.0f));
+        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
+        //model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.1f));
+
+        modelShader.setMat4("model", model);
+        anglerfishModel.Draw(modelShader);
 
 
 
@@ -523,7 +612,6 @@ int main() {
 
         modelShader.setMat4("model", model);
         seashellModel.Draw(modelShader);
-
 
 
 
@@ -657,9 +745,9 @@ void DrawImGui(ProgramState *programState) {
         ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
         ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
 
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.constant", &programState->pointLight[0].constant, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.linear", &programState->pointLight[0].linear, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight[0].quadratic, 0.05, 0.0, 1.0);
         ImGui::End();
     }
 
