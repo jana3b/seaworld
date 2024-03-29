@@ -67,7 +67,7 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0, 0, 0);
-    float backpackScale = 0.1f;
+    float backpackScale = 1.0f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -125,7 +125,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Park", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Seaworld", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -147,7 +147,7 @@ int main() {
     }
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
 
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
@@ -171,12 +171,28 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader modelShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
 
     // load models
     // -----------
-    Model ourModel("resources/objects/dog2/13043_German_Shorthaired_Pointer_v1_l2.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+    Model submarineModel("resources/objects/submarine/scene.gltf");
+    submarineModel.SetShaderTextureNamePrefix("material.");
+
+    Model fishModel("resources/objects/fish/13009_Coral_Beauty_Angelfish_v1_l3.obj");
+    fishModel.SetShaderTextureNamePrefix("material.");
+
+    Model seashellModel("resources/objects/seashell/sea_shell.obj");
+    seashellModel.SetShaderTextureNamePrefix("material.");
+
+    Model fish2Model("resources/objects/fish2/scene.gltf");
+    fish2Model.SetShaderTextureNamePrefix("material.");
+
+    Model sharkModel("resources/objects/shark/scene.gltf");
+    sharkModel.SetShaderTextureNamePrefix("material.");
+
+    Model jellyfishModel("resources/objects/jellyfish/scene.gltf");
+    jellyfishModel.SetShaderTextureNamePrefix("material.");
+
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -188,38 +204,69 @@ int main() {
     pointLight.linear = 0.35f;
     pointLight.quadratic = 0.032f;
 
+
     //********************************************************************************************************
-    // STONE PLANE
+    // METAL BOX
 
 
-    Shader planeShader("resources/shaders/plane.vs", "resources/shaders/plane.fs");
+
+    Shader boxShader("resources/shaders/box.vs", "resources/shaders/box.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-            // positions                    // texture coords
-            0.5f,  0.5f, 0.0f, 10.0f, 10.0f, // top right         1  1
-            0.5f, -0.5f, 0.0f, 10.0f, 0.0f, // bottom right      1  0
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left   0  0
-            -0.5f,  0.5f, 0.0f, 0.0f, 10.0f  // top left      0  1
-    };
-    unsigned int indices[] = {
-            0, 1, 3, // first triangle
-            1, 2, 3  // second triangle
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    unsigned int VBO, VAO, EBO;
+
+    unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -232,21 +279,23 @@ int main() {
     // load and create a texture
     // -------------------------
     unsigned int texture1;
+    // texture 1
+    // ---------
     glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    glBindTexture(GL_TEXTURE_2D, texture1);
     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/flagstone.png").c_str(), &width, &height, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+    unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -254,6 +303,14 @@ int main() {
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
+
+    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+    // -------------------------------------------------------------------------------------------
+    boxShader.use();
+    boxShader.setInt("texture1", 0);
+
+
+    stbi_set_flip_vertically_on_load(false);
 
 
 
@@ -319,12 +376,12 @@ int main() {
 
     vector<std::string> faces
             {
-                    FileSystem::getPath("resources/textures/skybox/afterrain_ft.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/afterrain_bk.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox/afterrain_up.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox/afterrain_dn.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox/afterrain_rt.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox/afterrain_lf.jpg")  //dobro
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_ft.jpg"),
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_bk.jpg"),  //dobro
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_up.jpg"),  //dobro
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_dn.jpg"),  //dobro
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_rt.jpg"),  //dobro
+                    FileSystem::getPath("resources/textures/skybox2/aqua4_lf.jpg")  //dobro
             };
 
     unsigned int cubemapTexture = loadCubemap(faces);
@@ -359,66 +416,141 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
-        ourShader.use();
+        modelShader.use();
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-        ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 32.0f);
+        modelShader.setVec3("pointLight.position", pointLight.position);
+        modelShader.setVec3("pointLight.ambient", pointLight.ambient);
+        modelShader.setVec3("pointLight.diffuse", pointLight.diffuse);
+        modelShader.setVec3("pointLight.specular", pointLight.specular);
+        modelShader.setFloat("pointLight.constant", pointLight.constant);
+        modelShader.setFloat("pointLight.linear", pointLight.linear);
+        modelShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+        modelShader.setVec3("viewPosition", programState->camera.Position);
+        modelShader.setFloat("material.shininess", 32.0f);
 
 
-        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-
+        modelShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        modelShader.setVec3("dirLight.ambient", 0.3f, 0.3f, 0.3f);
+        modelShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        modelShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
 
-        // render the loaded model
+
+
+        // render loaded models
+
+
+        //render submarine
         glm::mat4 model = glm::mat4(1.0f);
-
-        // translate it down so it's at the center of the scene
-        model = glm::translate(model,programState->backpackPosition);
+        //model = glm::translate(model,glm::vec3());
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, -1.0, 0.0));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, -1.0, 0.0));
+        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(2.0f));
+
+        modelShader.setMat4("model", model);
+        submarineModel.Draw(modelShader);
 
 
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        //render fish
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(10.0f, 5.0f, 10.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(2.0f));
+
+        modelShader.setMat4("model", model);
+        fishModel.Draw(modelShader);
+
+
+        //render fish2
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(8.0f, 2.0f, 15.0f));
+        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.8f));
+
+        modelShader.setMat4("model", model);
+        fish2Model.Draw(modelShader);
+
+
+        //render jellyfish
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-15.0f, 4.0f, -5.0f));
+        model = glm::rotate(model, glm::radians(-100.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.2f));
+
+        modelShader.setMat4("model", model);
+        jellyfishModel.Draw(modelShader);
+
+
+        //render shark
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(10.0f, 10.0f, 20.0f));
+        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.8f));
+
+        modelShader.setMat4("model", model);
+        sharkModel.Draw(modelShader);
+
+
+
+        //render seashell
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-4.0f, -48.0f, -7.0f));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
+        //model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.05f));
+
+        modelShader.setMat4("model", model);
+        seashellModel.Draw(modelShader);
+
+
+
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
 
 
-        //draw stone tiles
-
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
-        planeShader.use();
 
-        glm::mat4 planeModel = glm::mat4(1.0f);
-        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        planeModel = glm::scale(planeModel, glm::vec3(100.0f, 100.0f, 1.0f));
+        boxShader.use();
 
-        planeShader.setMat4("model", planeModel);
-        planeShader.setMat4("view", view);
-        planeShader.setMat4("projection", projection);
+        model  = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
+        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(10.0f));
+
+        boxShader.setMat4("model", model);
+        boxShader.setMat4("view", view);
+        boxShader.setMat4("projection", projection);
+
+
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 
@@ -444,6 +576,11 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+
 
     programState->SaveToFile("resources/program_state.txt");
     delete programState;

@@ -1,0 +1,11 @@
+Model Information:
+* title:	The Project 941 / Akula / Typhoon submarine
+* source:	https://sketchfab.com/3d-models/the-project-941-akula-typhoon-submarine-b7aef99dcf9f4252887a02a7afb3b75e
+* author:	yakudami (https://sketchfab.com/yakudami)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "The Project 941 / Akula / Typhoon submarine" (https://sketchfab.com/3d-models/the-project-941-akula-typhoon-submarine-b7aef99dcf9f4252887a02a7afb3b75e) by yakudami (https://sketchfab.com/yakudami) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
