@@ -194,6 +194,9 @@ int main() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // build and compile shaders
     // -------------------------
@@ -356,6 +359,53 @@ int main() {
 
 
     //********************************************************************************************************
+    // GLASS
+
+    Shader glassShader("resources/shaders/glass.vs", "resources/shaders/glass.fs");
+
+    //TODO proveri da li su vertexi poredjani u pozitivnom smeru (zbog face cullinga)
+
+    float glassVertices[] = {
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
+            0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
+            0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f // top-left
+    };
+
+    unsigned int glassIndices[] = {
+            0, 1, 3, // first triangle
+            1, 2, 3  // second triangle
+    };
+
+    unsigned int glassVBO, glassVAO, glassEBO;
+    glGenVertexArrays(1, &glassVAO);
+    glGenBuffers(1, &glassVBO);
+    glGenBuffers(1, &glassEBO);
+
+    glBindVertexArray(glassVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, glassVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glassVertices), glassVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glassEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glassIndices), glassIndices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // loading glass texture
+
+    unsigned int glassTexture = loadTexture(FileSystem::getPath("resources/textures/glass/1.png").c_str());
+
+    glassShader.use();
+    glassShader.setInt("texture1", 0);
+
+
+    //********************************************************************************************************
     // SKYBOX
 
 
@@ -453,13 +503,25 @@ int main() {
 
         // render
         // ------
-        glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
+        //glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
+                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = programState->camera.GetViewMatrix();
+
 
         //light inside of jellyfish moves as jellyfish moves
         jellyfishPointLight.position = glm::vec3(-15.0f, 4.0f + 4*sin(0.5*(float)glfwGetTime()), -5.0f);
 
         //anglerfishPointLight.position = glm::vec3(0.0f, 3.0f  + 3*sin(0.5*(float)glfwGetTime()), 51.0f);
+
+
+
+        // render metal box
 
         boxShader.use();
 
@@ -508,12 +570,6 @@ int main() {
         model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(10.0f));
 
-
-
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = programState->camera.GetViewMatrix();
 
         boxShader.setMat4("model", model);
         boxShader.setMat4("view", view);
@@ -638,7 +694,7 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*(float)glfwGetTime()), 20.0f));
         //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(- 2*cos((float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(- 3*cos(2*(float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
@@ -696,6 +752,36 @@ int main() {
         glDepthFunc(GL_LESS); // set depth function back to default
 
 
+
+        // render glass
+
+        glDisable(GL_CULL_FACE);
+
+        glassShader.use();
+
+        glassShader.setMat4("projection", projection);
+        glassShader.setMat4("view", view);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -6.0f, 60.0f));
+        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(6.0f));
+
+        glassShader.setMat4("model", model);
+
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, glassTexture);
+
+        glBindVertexArray(glassVAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glEnable(GL_CULL_FACE);
+
+
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -705,8 +791,13 @@ int main() {
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVBO);
+
+    glDeleteVertexArrays(1, &glassVAO);
+    glDeleteBuffers(1, &glassVBO);
+    glDeleteBuffers(1, &glassEBO);
 
 
     programState->SaveToFile("resources/program_state.txt");
