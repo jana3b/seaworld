@@ -28,6 +28,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 unsigned int loadCubemap(vector<std::string> faces);
 
+unsigned int loadTexture(char const * path);
+
 // settings
 const unsigned int SCR_WIDTH = 1200; //800
 const unsigned int SCR_HEIGHT = 800; //600
@@ -267,47 +269,48 @@ int main() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+            // positions          // normals           // texture coords
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
 
@@ -321,49 +324,30 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // normals attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
-    // load and create a texture
-    // -------------------------
-    unsigned int texture1;
-    // texture 1
-    // ---------
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str(), &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+
+    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str());
+    unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_spec_4k.jpg").c_str());
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
+
     boxShader.use();
-    boxShader.setInt("texture1", 0);
+    boxShader.setInt("material.diffuse", 0);
+    boxShader.setInt("material.specular", 1);
 
 
     stbi_set_flip_vertically_on_load(false);
-
 
 
     //********************************************************************************************************
@@ -467,6 +451,77 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        boxShader.use();
+
+        boxShader.setVec3("pointLights[0].position", jellyfishPointLight.position);
+        boxShader.setVec3("pointLights[0].ambient", jellyfishPointLight.ambient);
+        boxShader.setVec3("pointLights[0].diffuse", jellyfishPointLight.diffuse);
+        boxShader.setVec3("pointLights[0].specular", jellyfishPointLight.specular);
+        boxShader.setFloat("pointLights[0].constant", jellyfishPointLight.constant);
+        boxShader.setFloat("pointLights[0].linear", jellyfishPointLight.linear);
+        boxShader.setFloat("pointLights[0].quadratic", jellyfishPointLight.quadratic);
+
+
+        boxShader.setVec3("pointLights[1].position", anglerfishPointLight.position);
+        boxShader.setVec3("pointLights[1].ambient", anglerfishPointLight.ambient);
+        boxShader.setVec3("pointLights[1].diffuse", anglerfishPointLight.diffuse);
+        boxShader.setVec3("pointLights[1].specular", anglerfishPointLight.specular);
+        boxShader.setFloat("pointLights[1].constant", anglerfishPointLight.constant);
+        boxShader.setFloat("pointLights[1].linear", anglerfishPointLight.linear);
+        boxShader.setFloat("pointLights[1].quadratic", anglerfishPointLight.quadratic);
+
+        boxShader.setVec3("viewPosition", programState->camera.Position);
+        boxShader.setFloat("material.shininess", 32.0f);
+
+
+        boxShader.setVec3("dirLight.direction", dirLight.direction);
+        boxShader.setVec3("dirLight.ambient", dirLight.ambient);
+        boxShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        boxShader.setVec3("dirLight.specular", dirLight.specular);
+
+
+        boxShader.setVec3("spotLight.position",programState->camera.Position);
+        boxShader.setVec3("spotLight.direction", programState->camera.Front);
+        boxShader.setVec3("spotLight.ambient", spotLight.ambient);
+        boxShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        boxShader.setVec3("spotLight.specular", spotLight.specular);
+        boxShader.setFloat("spotLight.constant", spotLight.constant);
+        boxShader.setFloat("spotLight.linear", spotLight.linear);
+        boxShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        boxShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        boxShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
+
+        glm::mat4 model  = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
+        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(10.0f));
+
+
+
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
+                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = programState->camera.GetViewMatrix();
+
+        boxShader.setMat4("model", model);
+        boxShader.setMat4("view", view);
+        boxShader.setMat4("projection", projection);
+
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+
         // don't forget to enable shader before setting uniforms
         modelShader.use();
 
@@ -511,10 +566,6 @@ int main() {
         modelShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = programState->camera.GetViewMatrix();
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
 
@@ -523,8 +574,22 @@ int main() {
         // render loaded models
 
 
+
+        //render fish
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.1*cos((float)glfwGetTime()), 10.0f));
+        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
+        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(- 2*sin(7*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(2.0f));
+
+        modelShader.setMat4("model", model);
+        fishModel.Draw(modelShader);
+
+
         //render submarine
-        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::mat4(1.0f);
         //model = glm::translate(model,glm::vec3());
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, -1.0, 0.0));
@@ -533,19 +598,6 @@ int main() {
 
         modelShader.setMat4("model", model);
         submarineModel.Draw(modelShader);
-
-
-        //render fish
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.2*cos(4*(float)glfwGetTime()), 10.0f));
-        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f - 5*sin(5*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(2.0f));
-
-        modelShader.setMat4("model", model);
-        fishModel.Draw(modelShader);
 
 
         //render fish2
@@ -577,9 +629,9 @@ int main() {
         //render shark
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 10.0f + sin((float)glfwGetTime()), 20.0f));
+        model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*(float)glfwGetTime()), 20.0f));
         //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(20.0f - 10*cos((float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(- 2*cos((float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
@@ -619,28 +671,6 @@ int main() {
             DrawImGui(programState);
 
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-
-        boxShader.use();
-
-        model  = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
-        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(10.0f));
-
-        boxShader.setMat4("model", model);
-        boxShader.setMat4("view", view);
-        boxShader.setMat4("projection", projection);
-
-
-
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
 
         // draw skybox as last
 
@@ -668,6 +698,8 @@ int main() {
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteBuffers(1, &skyboxVBO);
 
 
     programState->SaveToFile("resources/program_state.txt");
@@ -811,3 +843,40 @@ unsigned int loadCubemap(vector<std::string> faces)
     return textureID;
 }
 
+
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
