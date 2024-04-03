@@ -34,6 +34,10 @@ unsigned int loadTexture(char const * path);
 const unsigned int SCR_WIDTH = 1200; //800
 const unsigned int SCR_HEIGHT = 800; //600
 
+int Width = SCR_WIDTH;
+int Height = SCR_HEIGHT;
+
+
 // camera
 
 float lastX = SCR_WIDTH / 2.0f;
@@ -510,7 +514,7 @@ int main() {
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+                                                (float) Width / (float) Height, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
 
 
@@ -832,7 +836,9 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    Width = width;
+    Height = height;
+    glViewport(0, 0, Width, Height);
 }
 
 // glfw: whenever the mouse moves, this callback is called
