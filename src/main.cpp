@@ -30,9 +30,12 @@ unsigned int loadCubemap(vector<std::string> faces);
 
 unsigned int loadTexture(char const * path);
 
+void renderQuad();
+
 // settings
 const unsigned int SCR_WIDTH = 1200; //800
 const unsigned int SCR_HEIGHT = 800; //600
+float heightScale = 0.1;
 
 int Width = SCR_WIDTH;
 int Height = SCR_HEIGHT;
@@ -211,7 +214,7 @@ int main() {
     Model submarineModel("resources/objects/submarine/scene.gltf");
     submarineModel.SetShaderTextureNamePrefix("material.");
 
-    Model fishModel("resources/objects/fish/13009_Coral_Beauty_Angelfish_v1_l3.obj");
+    Model fishModel("resources/objects/fish/scene.gltf");
     fishModel.SetShaderTextureNamePrefix("material.");
 
     Model seashellModel("resources/objects/seashell/sea_shell.obj");
@@ -275,11 +278,11 @@ int main() {
     // METAL BOX
 
 
-
     Shader boxShader("resources/shaders/box.vs", "resources/shaders/box.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
+
     float vertices[] = {
             // positions          // normals           // texture coords
             -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
@@ -290,18 +293,18 @@ int main() {
             -0.5f, 0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
             -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-            0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
 
             -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
             -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
             0.5f,  -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
@@ -311,11 +314,11 @@ int main() {
             0.5f,  -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
             -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
 
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
             0.5f,  0.5f, 0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
@@ -348,8 +351,8 @@ int main() {
     glEnableVertexAttribArray(2);
 
 
-    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str());
-    unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_spec_4k.jpg").c_str());
+    unsigned int boxDiffuseMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str());
+    unsigned int boxSpecularMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_spec_4k.jpg").c_str());
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -486,6 +489,32 @@ int main() {
 
 
 
+
+    //********************************************************************************************************
+    // QUAD - normal and parallax mapping
+
+
+    Shader quadShader("resources/shaders/quad.vs", "resources/shaders/quad.fs");
+
+    // load textures
+    // -------------
+    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/rock/diff.jpg").c_str());
+    unsigned int normalMap  = loadTexture(FileSystem::getPath("resources/textures/rock/nor.jpg").c_str());
+    unsigned int heightMap  = loadTexture(FileSystem::getPath("resources/textures/rock/disp.jpg").c_str());
+
+    // shader configuration
+    // --------------------
+    quadShader.use();
+    quadShader.setInt("diffuseMap", 0);
+    quadShader.setInt("normalMap", 1);
+    quadShader.setInt("depthMap", 2);
+
+    // lighting info
+    // -------------
+    glm::vec3 lightPos(10.0f, 10.0f, 10.0f);
+
+
+
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -568,11 +597,11 @@ int main() {
         boxShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
         glm::mat4 model  = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
-        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(10.0f));
+        model = glm::translate(model,glm::vec3(-3.0f, -4.0f, 60.0f));
+        model = glm::rotate(model, glm::radians(33.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(15.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(2.2f));
 
 
         boxShader.setMat4("model", model);
@@ -581,9 +610,9 @@ int main() {
 
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glBindTexture(GL_TEXTURE_2D, boxDiffuseMap);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+        glBindTexture(GL_TEXTURE_2D, boxSpecularMap);
 
 
         glBindVertexArray(VAO);
@@ -637,22 +666,7 @@ int main() {
         modelShader.setMat4("view", view);
 
 
-
         // render loaded models
-
-
-
-        //render fish
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.1*cos((float)glfwGetTime()), 10.0f));
-        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
-        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(- 2*sin(7*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(2.0f));
-
-        modelShader.setMat4("model", model);
-        fishModel.Draw(modelShader);
 
 
         //render submarine
@@ -665,6 +679,20 @@ int main() {
 
         modelShader.setMat4("model", model);
         submarineModel.Draw(modelShader);
+
+
+        //render fish
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.1*cos((float)glfwGetTime()), 10.0f));
+        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
+        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(- 2*sin(7*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.7f));
+
+        modelShader.setMat4("model", model);
+        fishModel.Draw(modelShader);
+
 
 
         //render fish2
@@ -706,6 +734,7 @@ int main() {
         sharkModel.Draw(modelShader);
 
 
+
         //render anglerfish
 
         model = glm::mat4(1.0f);
@@ -723,14 +752,62 @@ int main() {
         //render seashell
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-4.0f, -48.0f, -7.0f));
-        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
-        //model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(0.05f));
+        model = glm::translate(model,glm::vec3(-3.0f, -3.0f, 59.0f));
+        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+        //model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(0.01f));
 
         modelShader.setMat4("model", model);
         seashellModel.Draw(modelShader);
+
+
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //render quad
+
+        glDisable(GL_CULL_FACE);
+
+        quadShader.use();
+        quadShader.setMat4("projection", projection);
+        quadShader.setMat4("view", view);
+        // render parallax-mapped quad
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, -5.0f, 59.0f));
+        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0)); // rotate the quad to show parallax mapping from multiple directions
+        model = glm::rotate(model, glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(1.0f));
+        quadShader.setMat4("model", model);
+        quadShader.setVec3("viewPos", programState->camera.Position);
+        quadShader.setVec3("lightPos", anglerfishPointLight.position);
+        quadShader.setFloat("heightScale", heightScale); // adjust with Q and E keys
+        //std::cout << heightScale << std::endl;
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normalMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, heightMap);
+        //renderQuad();
+
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, -6.0f, 60.0f));
+        model = glm::rotate(model, glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(1.2f));
+        quadShader.setMat4("model", model);
+        renderQuad();
+
+
+        glEnable(GL_CULL_FACE);
+
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 
 
 
@@ -767,7 +844,7 @@ int main() {
         glassShader.setMat4("view", view);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -6.0f, 60.0f));
+        model = glm::translate(model, glm::vec3(4.0f, -6.0f, 62.0f));
         model = glm::rotate(model, glm::radians(60.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -791,10 +868,10 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+//
+//
+//    glDeleteVertexArrays(1, &VAO);
+//    glDeleteBuffers(1, &VBO);
 
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVBO);
@@ -983,4 +1060,190 @@ unsigned int loadTexture(char const * path)
     }
 
     return textureID;
+}
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+
+
+        float positions[] = {
+                -0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f,  0.5f, -0.5f,
+                0.5f,  0.5f, -0.5f,
+                -0.5f,  0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+
+                -0.5f, -0.5f,  0.5f,
+                0.5f, -0.5f,  0.5f,
+                0.5f,  0.5f,  0.5f,
+                0.5f,  0.5f,  0.5f,
+                -0.5f,  0.5f,  0.5f,
+                -0.5f, -0.5f,  0.5f,
+
+                -0.5f,  0.5f,  0.5f,
+                -0.5f,  0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+                -0.5f, -0.5f,  0.5f,
+                -0.5f,  0.5f,  0.5f,
+
+                0.5f,  0.5f,  0.5f,
+                0.5f,  0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f,  0.5f,
+                0.5f,  0.5f,  0.5f,
+
+                -0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f,  0.5f,
+                0.5f, -0.5f,  0.5f,
+                -0.5f, -0.5f,  0.5f,
+                -0.5f, -0.5f, -0.5f,
+
+                -0.5f,  0.5f, -0.5f,
+                0.5f,  0.5f, -0.5f,
+                0.5f,  0.5f,  0.5f,
+                0.5f,  0.5f,  0.5f,
+                -0.5f,  0.5f,  0.5f,
+                -0.5f,  0.5f, -0.5f
+        };
+
+
+        float texcoords[] = {
+                  0.0f, 0.0f,
+                  1.0f, 0.0f,
+                  1.0f, 1.0f,
+                  1.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 0.0f,
+
+                  0.0f, 0.0f,
+                  1.0f, 0.0f,
+                  1.0f, 1.0f,
+                  1.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 0.0f,
+
+                  1.0f, 0.0f,
+                  1.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 0.0f,
+                 1.0f, 0.0f,
+
+                  1.0f, 0.0f,
+                  1.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 1.0f,
+                  0.0f, 0.0f,
+                 1.0f, 0.0f,
+
+                  0.0f, 1.0f,
+                  1.0f, 1.0f,
+                  1.0f, 0.0f,
+                  1.0f, 0.0f,
+                  0.0f, 0.0f,
+                  0.0f, 1.0f,
+
+                  0.0f, 1.0f,
+                  1.0f, 1.0f,
+                  1.0f, 0.0f,
+                  1.0f, 0.0f,
+                  0.0f, 0.0f,
+                  0.0f, 1.0f
+        };
+
+        // positions
+        glm::vec3 pos1(-1.0f,  1.0f, 0.0f);
+        glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
+        glm::vec3 pos3( 1.0f, -1.0f, 0.0f);
+        glm::vec3 pos4( 1.0f,  1.0f, 0.0f);
+        // texture coordinates
+        glm::vec2 uv1(0.0f, 1.0f);
+        glm::vec2 uv2(0.0f, 0.0f);
+        glm::vec2 uv3(1.0f, 0.0f);
+        glm::vec2 uv4(1.0f, 1.0f);
+        // normal vector
+        glm::vec3 nm(0.0f, 0.0f, 1.0f);
+
+        // calculate tangent/bitangent vectors of both triangles
+        glm::vec3 tangent1, bitangent1;
+        glm::vec3 tangent2, bitangent2;
+        // triangle 1
+        // ----------
+        glm::vec3 edge1 = pos2 - pos1;
+        glm::vec3 edge2 = pos3 - pos1;
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent1 = glm::normalize(tangent1);
+
+        bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        bitangent1 = glm::normalize(bitangent1);
+
+        // triangle 2
+        // ----------
+        edge1 = pos3 - pos1;
+        edge2 = pos4 - pos1;
+        deltaUV1 = uv3 - uv1;
+        deltaUV2 = uv4 - uv1;
+
+        f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent2 = glm::normalize(tangent2);
+
+
+        bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        bitangent2 = glm::normalize(bitangent2);
+
+
+        float quadVertices[] = {
+                // positions            // normal         // texcoords  // tangent                          // bitangent
+                pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+                pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+                pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+
+                pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+                pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+                pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z
+        };
+        // configure plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 }
