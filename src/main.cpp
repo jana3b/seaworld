@@ -32,7 +32,7 @@ unsigned int loadTexture(char const * path);
 
 void renderQuad();
 
-void setShaderLights(Shader shader);
+void setShaderLights(Shader &shader);
 
 // settings
 const unsigned int SCR_WIDTH = 1200; //800
@@ -55,6 +55,9 @@ float lastFrame = 0.0f;
 
 bool blink = false;
 int jellyfishColor = 2;
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
 
 struct PointLight {
     glm::vec3 position;
@@ -100,7 +103,6 @@ struct ProgramState {
     DirLight dirLight;
     SpotLight spotLight;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float backpackScale = 1.0f;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -178,9 +180,6 @@ int main() {
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    //stbi_set_flip_vertically_on_load(true);
-
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
     if (programState->ImGuiEnabled) {
@@ -201,13 +200,15 @@ int main() {
 
     // configure global opengl state
     // -----------------------------
+
+    // Depth testing
     glEnable(GL_DEPTH_TEST);
 
-    // Enable face culling
+    // Face culling
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    // Enable blending
+    // Blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -236,8 +237,10 @@ int main() {
     jellyfishModel.SetShaderTextureNamePrefix("material.");
 
     Model anglerfishModel("resources/objects/anglerfish/scene.gltf");
-    jellyfishModel.SetShaderTextureNamePrefix("material.");
+    anglerfishModel.SetShaderTextureNamePrefix("material.");
 
+    Model barrelsModel("resources/objects/barrels/scene.gltf");
+    barrelsModel.SetShaderTextureNamePrefix("material.");
 
     // setting lights
 
@@ -357,8 +360,8 @@ int main() {
     glEnableVertexAttribArray(2);
 
 
-    unsigned int boxDiffuseMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_diff_4k.jpg").c_str());
-    unsigned int boxSpecularMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_plate_spec_4k.jpg").c_str());
+    unsigned int boxDiffuseMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_diff.jpg").c_str());
+    unsigned int boxSpecularMap = loadTexture(FileSystem::getPath("resources/textures/metal/metal_spec.jpg").c_str());
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -372,9 +375,9 @@ int main() {
 
 
     //********************************************************************************************************
-    // GLASS
+    // SEAWEED
 
-    Shader glassShader("resources/shaders/glass.vs", "resources/shaders/glass.fs");
+    Shader glassShader("resources/shaders/blending.vs", "resources/shaders/blending.fs");
 
     float glassVertices[] = {
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
@@ -410,7 +413,7 @@ int main() {
 
     // loading glass texture
 
-    unsigned int glassTexture = loadTexture(FileSystem::getPath("resources/textures/glass/1.png").c_str());
+    unsigned int glassTexture = loadTexture(FileSystem::getPath("resources/textures/transparent/seaweed.png").c_str());
 
     glassShader.use();
     glassShader.setInt("texture1", 0);
@@ -478,12 +481,12 @@ int main() {
 
     vector<std::string> faces
             {
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_ft.jpg"),
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_bk.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_up.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_dn.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_rt.jpg"),  //dobro
-                    FileSystem::getPath("resources/textures/skybox2/aqua4_lf.jpg")  //dobro
+                    FileSystem::getPath("resources/textures/skybox/aqua4_ft.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/aqua4_bk.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/aqua4_up.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/aqua4_dn.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/aqua4_rt.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/aqua4_lf.jpg")
             };
 
     unsigned int cubemapTexture = loadCubemap(faces);
@@ -502,9 +505,9 @@ int main() {
 
     // load textures
     // -------------
-    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/rock/diff.jpg").c_str());
-    unsigned int normalMap  = loadTexture(FileSystem::getPath("resources/textures/rock/nor.jpg").c_str());
-    unsigned int heightMap  = loadTexture(FileSystem::getPath("resources/textures/rock/disp.jpg").c_str());
+    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/iron/iron_diff.jpg").c_str());
+    unsigned int normalMap  = loadTexture(FileSystem::getPath("resources/textures/iron/iron_nor.jpg").c_str());
+    unsigned int heightMap  = loadTexture(FileSystem::getPath("resources/textures/iron/iron_disp.jpg").c_str());
 
     // shader configuration
     // --------------------
@@ -531,9 +534,9 @@ int main() {
         processInput(window);
 
         if(blink){
-            anglerfishPointLight.ambient = glm::vec3(0.001f*cos(currentFrame));
-            anglerfishPointLight.diffuse = glm::vec3(0.2f*tan(200*currentFrame));
-            anglerfishPointLight.specular = glm::vec3(0.01f*(1/tan(100*currentFrame)));
+            anglerfishPointLight.ambient = glm::vec3(0.1f + 0.0005f*cos(currentFrame));
+            anglerfishPointLight.diffuse = glm::vec3(0.2f + 0.02f*tan(200*currentFrame));
+            anglerfishPointLight.specular = glm::vec3(0.005f*(1/tan(100*currentFrame)));
         }else{
             anglerfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
             anglerfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
@@ -575,11 +578,11 @@ int main() {
         setShaderLights(boxShader);
 
         glm::mat4 model  = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-3.0f, -4.0f, 60.0f));
-        model = glm::rotate(model, glm::radians(33.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(15.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(2.2f));
+        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
+        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(10.0f));
 
         boxShader.setMat4("model", model);
         boxShader.setMat4("view", view);
@@ -605,6 +608,7 @@ int main() {
 
 
         //render submarine
+
         model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::scale(model, glm::vec3(2.0f));
@@ -657,7 +661,6 @@ int main() {
         model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*currentFrame), 20.0f));
         model = glm::rotate(model, glm::radians(- 3*cos(2*currentFrame)), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(0.8f));
 
         modelShader.setMat4("model", model);
         sharkModel.Draw(modelShader);
@@ -677,12 +680,24 @@ int main() {
         //render seashell
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-3.0f, -3.0f, 59.0f));
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::scale(model, glm::vec3(0.01f));
+        model = glm::translate(model,glm::vec3(-4.0f, -48.0f, -7.0f));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::scale(model, glm::vec3(0.05f));
 
         modelShader.setMat4("model", model);
         seashellModel.Draw(modelShader);
+
+
+        //render barrels
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-30.0f, -25.0f, -8.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+
+        modelShader.setMat4("model", model);
+        barrelsModel.Draw(modelShader);
 
 
 
@@ -695,32 +710,23 @@ int main() {
         quadShader.setMat4("view", view);
         // render parallax-mapped quad
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, -5.0f, 59.0f));
-        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0)); // rotate the quad to show parallax mapping from multiple directions
-        model = glm::rotate(model, glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(1.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, -10.0f, -10.0f));
+        model = glm::rotate(model, glm::radians(-60.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(3.0f));
         quadShader.setMat4("model", model);
         quadShader.setVec3("viewPos", programState->camera.Position);
-        quadShader.setVec3("lightPos", blink? glm::vec3(-1000.0f) : anglerfishPointLight.position);
-        quadShader.setFloat("heightScale", heightScale); // adjust with Q and E keys
-        //std::cout << heightScale << std::endl;
+        quadShader.setVec3("lightPos", jellyfishPointLight.position);
+        quadShader.setVec3("lightColor", jellyfishPointLight.ambient);
+        quadShader.setFloat("heightScale", heightScale);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, normalMap);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, heightMap);
-        //renderQuad();
 
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, -6.0f, 60.0f));
-        model = glm::rotate(model, glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(1.2f));
-        quadShader.setMat4("model", model);
         renderQuad();
 
 
@@ -750,7 +756,7 @@ int main() {
 
 
 
-        // render glass
+        // render seaweed
 
         glDisable(GL_CULL_FACE);
 
@@ -760,11 +766,11 @@ int main() {
         glassShader.setMat4("view", view);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(4.0f, -6.0f, 62.0f));
-        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
-        model = glm::scale(model, glm::vec3(6.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, -9.5f, -10.0f));
+        model = glm::rotate(model, glm::radians(200.0f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(-15.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::scale(model, glm::vec3(4.0f));
 
         glassShader.setMat4("model", model);
 
@@ -786,6 +792,7 @@ int main() {
     }
 
 
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
@@ -795,6 +802,17 @@ int main() {
     glDeleteVertexArrays(1, &glassVAO);
     glDeleteBuffers(1, &glassVBO);
     glDeleteBuffers(1, &glassEBO);
+
+    glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
+
+    glDeleteTextures(1, &boxDiffuseMap);
+    glDeleteTextures(1,&boxSpecularMap);
+    glDeleteTextures(1, &glassTexture);
+    glDeleteTextures(1, &diffuseMap);
+    glDeleteTextures(1, &normalMap);
+    glDeleteTextures(1, &heightMap);
+    glDeleteTextures(1, &cubemapTexture);
 
 
     programState->SaveToFile("resources/program_state.txt");
@@ -828,8 +846,6 @@ void processInput(GLFWwindow *window) {
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
     Width = width;
     Height = height;
     glViewport(0, 0, Width, Height);
@@ -987,8 +1003,6 @@ unsigned int loadTexture(char const * path)
     return textureID;
 }
 
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
 
 void renderQuad()
 {
@@ -1084,7 +1098,7 @@ void renderQuad()
     glBindVertexArray(0);
 }
 
-void setShaderLights(Shader shader){
+void setShaderLights(Shader &shader){
     shader.setVec3("pointLights[0].position", programState->jellyfishPointLight.position);
     shader.setVec3("pointLights[0].ambient", programState->jellyfishPointLight.ambient);
     shader.setVec3("pointLights[0].diffuse", programState->jellyfishPointLight.diffuse);

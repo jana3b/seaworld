@@ -66,17 +66,8 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float diff = max(dot(normal, lightDir), 0.0);
 
     // specular shading
-    // Phong model
-//     vec3 reflectDir = reflect(-lightDir, normal);
-//     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    // Blinn-Phong model
-    //vec3 lightDir   = normalize(lightPos - FragPos);
-    //vec3 viewDir    = normalize(viewPos - FragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    //vec3 specular = lightColor * spec;
-
 
     // attenuation
     float distance = length(light.position - fragPos);
@@ -98,16 +89,9 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
 
-
     // specular shading
-    // Phong model
-//     vec3 reflectDir = reflect(-lightDir, normal);
-//     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    // Blinn-Phong model
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-
 
     // combine results
     vec3 ambient = light.ambient * vec3(texture(material.texture_diffuse1, TexCoords));
@@ -122,17 +106,9 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
 
-
     // specular shading
-    // Phong model
-//     vec3 reflectDir = reflect(-lightDir, normal);
-//     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    // Blinn-Phong model
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-
-
 
     // attenuation
     float distance = length(light.position - fragPos);
@@ -157,7 +133,6 @@ void main()
 {
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPosition - FragPos);
-    //vec3 result = CalcPointLight(pointLight, normal, FragPos, viewDir);
 
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
     result += CalcPointLight(pointLights[0], normal, FragPos, viewDir);

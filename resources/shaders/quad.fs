@@ -13,6 +13,7 @@ uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
 
+uniform vec3 lightColor;
 uniform float heightScale;
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
@@ -49,6 +50,7 @@ void main()
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
 
     vec3 specular = vec3(0.3) * spec;
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
+    //FragColor = vec4(ambient + diffuse + specular, 1.0);
+    FragColor = vec4(0.5*(0.2*lightColor+vec3(ambient + diffuse + specular)), 1.0);
 
 }
