@@ -32,6 +32,8 @@ unsigned int loadTexture(char const * path);
 
 void renderQuad();
 
+void setShaderLights(Shader shader);
+
 // settings
 const unsigned int SCR_WIDTH = 1200; //800
 const unsigned int SCR_HEIGHT = 800; //600
@@ -50,6 +52,9 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+bool blink = false;
+int jellyfishColor = 2;
 
 struct PointLight {
     glm::vec3 position;
@@ -90,7 +95,8 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    PointLight pointLight[2];
+    PointLight jellyfishPointLight;
+    PointLight anglerfishPointLight;
     DirLight dirLight;
     SpotLight spotLight;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
@@ -207,7 +213,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader modelShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader modelShader("resources/shaders/model.vs", "resources/shaders/model.fs");
 
     // load models
     // -----------
@@ -235,16 +241,16 @@ int main() {
 
     // setting lights
 
-    PointLight& jellyfishPointLight = programState->pointLight[0];
+    PointLight& jellyfishPointLight = programState->jellyfishPointLight;
     jellyfishPointLight.position = glm::vec3(-16.0f, 11.0f, -6.0f);
-    jellyfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    jellyfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    jellyfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.3);
+    jellyfishPointLight.diffuse = glm::vec3(0.6, 0.6, 1.0);
     jellyfishPointLight.specular = glm::vec3(1.0, 1.0, 1.0);
     jellyfishPointLight.constant = 1.0f;
     jellyfishPointLight.linear = 0.027f;
     jellyfishPointLight.quadratic = 0.0028f;
 
-    PointLight& anglerfishPointLight = programState->pointLight[1];
+    PointLight& anglerfishPointLight = programState->anglerfishPointLight;
     anglerfishPointLight.position = glm::vec3(0.0f, 3.0f, 51.0f);
     anglerfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
     anglerfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
@@ -369,8 +375,6 @@ int main() {
     // GLASS
 
     Shader glassShader("resources/shaders/glass.vs", "resources/shaders/glass.fs");
-
-    //TODO proveri da li su vertexi poredjani u pozitivnom smeru (zbog face cullinga)
 
     float glassVertices[] = {
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
@@ -509,14 +513,7 @@ int main() {
     quadShader.setInt("normalMap", 1);
     quadShader.setInt("depthMap", 2);
 
-    // lighting info
-    // -------------
-    glm::vec3 lightPos(10.0f, 10.0f, 10.0f);
 
-
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
     //********************************************************************************************************
@@ -533,13 +530,34 @@ int main() {
         // -----
         processInput(window);
 
+        if(blink){
+            anglerfishPointLight.ambient = glm::vec3(0.001f*cos(currentFrame));
+            anglerfishPointLight.diffuse = glm::vec3(0.2f*tan(200*currentFrame));
+            anglerfishPointLight.specular = glm::vec3(0.01f*(1/tan(100*currentFrame)));
+        }else{
+            anglerfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
+            anglerfishPointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+            anglerfishPointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+        }
 
-        // render
-        // ------
-        //glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        switch(jellyfishColor){
+            case 0:
+                jellyfishPointLight.ambient = glm::vec3(0.3, 0.1, 0.1);
+                jellyfishPointLight.diffuse = glm::vec3(1.0, 0.6, 0.6);
+                break;
+            case 1:
+                jellyfishPointLight.ambient = glm::vec3(0.1, 0.3, 0.1);
+                jellyfishPointLight.diffuse = glm::vec3(0.6, 1.0, 0.6);
+                break;
+            case 2:
+                jellyfishPointLight.ambient = glm::vec3(0.1, 0.1, 0.3);
+                jellyfishPointLight.diffuse = glm::vec3(0.6, 0.6, 1.0);
+                break;
+        }
+
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
@@ -548,53 +566,13 @@ int main() {
 
 
         //light inside of jellyfish moves as jellyfish moves
-        jellyfishPointLight.position = glm::vec3(-15.0f, 4.0f + 4*sin(0.5*(float)glfwGetTime()), -5.0f);
-
-        //anglerfishPointLight.position = glm::vec3(0.0f, 3.0f  + 3*sin(0.5*(float)glfwGetTime()), 51.0f);
-
+        jellyfishPointLight.position = glm::vec3(-15.0f, 4.0f + 4*sin(0.5*currentFrame), -5.0f);
 
 
         // render metal box
 
         boxShader.use();
-
-        boxShader.setVec3("pointLights[0].position", jellyfishPointLight.position);
-        boxShader.setVec3("pointLights[0].ambient", jellyfishPointLight.ambient);
-        boxShader.setVec3("pointLights[0].diffuse", jellyfishPointLight.diffuse);
-        boxShader.setVec3("pointLights[0].specular", jellyfishPointLight.specular);
-        boxShader.setFloat("pointLights[0].constant", jellyfishPointLight.constant);
-        boxShader.setFloat("pointLights[0].linear", jellyfishPointLight.linear);
-        boxShader.setFloat("pointLights[0].quadratic", jellyfishPointLight.quadratic);
-
-
-        boxShader.setVec3("pointLights[1].position", anglerfishPointLight.position);
-        boxShader.setVec3("pointLights[1].ambient", anglerfishPointLight.ambient);
-        boxShader.setVec3("pointLights[1].diffuse", anglerfishPointLight.diffuse);
-        boxShader.setVec3("pointLights[1].specular", anglerfishPointLight.specular);
-        boxShader.setFloat("pointLights[1].constant", anglerfishPointLight.constant);
-        boxShader.setFloat("pointLights[1].linear", anglerfishPointLight.linear);
-        boxShader.setFloat("pointLights[1].quadratic", anglerfishPointLight.quadratic);
-
-        boxShader.setVec3("viewPosition", programState->camera.Position);
-        boxShader.setFloat("material.shininess", 32.0f);
-
-
-        boxShader.setVec3("dirLight.direction", dirLight.direction);
-        boxShader.setVec3("dirLight.ambient", dirLight.ambient);
-        boxShader.setVec3("dirLight.diffuse", dirLight.diffuse);
-        boxShader.setVec3("dirLight.specular", dirLight.specular);
-
-
-        boxShader.setVec3("spotLight.position",programState->camera.Position);
-        boxShader.setVec3("spotLight.direction", programState->camera.Front);
-        boxShader.setVec3("spotLight.ambient", spotLight.ambient);
-        boxShader.setVec3("spotLight.diffuse", spotLight.diffuse);
-        boxShader.setVec3("spotLight.specular", spotLight.specular);
-        boxShader.setFloat("spotLight.constant", spotLight.constant);
-        boxShader.setFloat("spotLight.linear", spotLight.linear);
-        boxShader.setFloat("spotLight.quadratic", spotLight.quadratic);
-        boxShader.setFloat("spotLight.cutOff", spotLight.cutOff);
-        boxShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
+        setShaderLights(boxShader);
 
         glm::mat4 model  = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(-3.0f, -4.0f, 60.0f));
@@ -603,78 +581,32 @@ int main() {
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(2.2f));
 
-
         boxShader.setMat4("model", model);
         boxShader.setMat4("view", view);
         boxShader.setMat4("projection", projection);
-
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, boxDiffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, boxSpecularMap);
 
-
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 
-        // don't forget to enable shader before setting uniforms
+        // render models
+
         modelShader.use();
-
-        modelShader.setVec3("pointLights[0].position", jellyfishPointLight.position);
-        modelShader.setVec3("pointLights[0].ambient", jellyfishPointLight.ambient);
-        modelShader.setVec3("pointLights[0].diffuse", jellyfishPointLight.diffuse);
-        modelShader.setVec3("pointLights[0].specular", jellyfishPointLight.specular);
-        modelShader.setFloat("pointLights[0].constant", jellyfishPointLight.constant);
-        modelShader.setFloat("pointLights[0].linear", jellyfishPointLight.linear);
-        modelShader.setFloat("pointLights[0].quadratic", jellyfishPointLight.quadratic);
-
-
-        modelShader.setVec3("pointLights[1].position", anglerfishPointLight.position);
-        modelShader.setVec3("pointLights[1].ambient", anglerfishPointLight.ambient);
-        modelShader.setVec3("pointLights[1].diffuse", anglerfishPointLight.diffuse);
-        modelShader.setVec3("pointLights[1].specular", anglerfishPointLight.specular);
-        modelShader.setFloat("pointLights[1].constant", anglerfishPointLight.constant);
-        modelShader.setFloat("pointLights[1].linear", anglerfishPointLight.linear);
-        modelShader.setFloat("pointLights[1].quadratic", anglerfishPointLight.quadratic);
-
-        modelShader.setVec3("viewPosition", programState->camera.Position);
-        modelShader.setFloat("material.shininess", 32.0f);
-
-
-        modelShader.setVec3("dirLight.direction", dirLight.direction);
-        modelShader.setVec3("dirLight.ambient", dirLight.ambient);
-        modelShader.setVec3("dirLight.diffuse", dirLight.diffuse);
-        modelShader.setVec3("dirLight.specular", dirLight.specular);
-
-
-        modelShader.setVec3("spotLight.position",programState->camera.Position);
-        modelShader.setVec3("spotLight.direction", programState->camera.Front);
-        modelShader.setVec3("spotLight.ambient", spotLight.ambient);
-        modelShader.setVec3("spotLight.diffuse", spotLight.diffuse);
-        modelShader.setVec3("spotLight.specular", spotLight.specular);
-        modelShader.setFloat("spotLight.constant", spotLight.constant);
-        modelShader.setFloat("spotLight.linear", spotLight.linear);
-        modelShader.setFloat("spotLight.quadratic", spotLight.quadratic);
-        modelShader.setFloat("spotLight.cutOff", spotLight.cutOff);
-        modelShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
-
+        setShaderLights(modelShader);
 
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
 
 
-        // render loaded models
-
-
         //render submarine
         model = glm::mat4(1.0f);
-        //model = glm::translate(model,glm::vec3());
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, -1.0, 0.0));
-        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(2.0f));
 
         modelShader.setMat4("model", model);
@@ -684,24 +616,22 @@ int main() {
         //render fish
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.1*cos((float)glfwGetTime()), 10.0f));
-        model = glm::rotate(model, glm::radians( -90.0f - 2*cos((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
-        //model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(- 2*sin(7*(float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::translate(model,glm::vec3(10.0f, 5.0f + 0.1*cos(currentFrame), 10.0f));
+        model = glm::rotate(model, glm::radians( -90.0f - 2*cos(currentFrame)), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(- 2*sin(7*currentFrame)), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.7f));
 
         modelShader.setMat4("model", model);
         fishModel.Draw(modelShader);
 
 
-
         //render fish2
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(8.0f, 2.0f + 0.5*cos((float)glfwGetTime()), 15.0f));
-        model = glm::rotate(model, glm::radians(0.0f - 2*sin((float)glfwGetTime())), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(-90.0f + 8*sin(5*(float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(10.0f - 3*sin((float)glfwGetTime())), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::translate(model,glm::vec3(8.0f, 2.0f + 0.5*cos(currentFrame), 15.0f));
+        model = glm::rotate(model, glm::radians(0.0f - 2*sin(currentFrame)), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, glm::radians(-90.0f + 8*sin(5*currentFrame)), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(10.0f - 3*sin(currentFrame)), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
         modelShader.setMat4("model", model);
@@ -711,7 +641,7 @@ int main() {
         //render jellyfish
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-15.0f, 4.0f + 4*sin(0.5*(float)glfwGetTime()), -5.0f));
+        model = glm::translate(model,glm::vec3(-15.0f, 4.0f + 4*sin(0.5*currentFrame), -5.0f));
         model = glm::rotate(model, glm::radians(-100.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -724,9 +654,8 @@ int main() {
         //render shark
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*(float)glfwGetTime()), 20.0f));
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::rotate(model, glm::radians(- 3*cos(2*(float)glfwGetTime())), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*currentFrame), 20.0f));
+        model = glm::rotate(model, glm::radians(- 3*cos(2*currentFrame)), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.8f));
 
@@ -734,28 +663,22 @@ int main() {
         sharkModel.Draw(modelShader);
 
 
-
         //render anglerfish
 
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(0.0f, -3.0f, 70.0f));
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
-        //model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.1f));
 
         modelShader.setMat4("model", model);
         anglerfishModel.Draw(modelShader);
 
 
-
         //render seashell
 
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(-3.0f, -3.0f, 59.0f));
-        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-        //model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::scale(model, glm::vec3(0.01f));
 
         modelShader.setMat4("model", model);
@@ -763,7 +686,6 @@ int main() {
 
 
 
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //render quad
 
         glDisable(GL_CULL_FACE);
@@ -780,7 +702,7 @@ int main() {
         model = glm::scale(model, glm::vec3(1.0f));
         quadShader.setMat4("model", model);
         quadShader.setVec3("viewPos", programState->camera.Position);
-        quadShader.setVec3("lightPos", anglerfishPointLight.position);
+        quadShader.setVec3("lightPos", blink? glm::vec3(-1000.0f) : anglerfishPointLight.position);
         quadShader.setFloat("heightScale", heightScale); // adjust with Q and E keys
         //std::cout << heightScale << std::endl;
         glActiveTexture(GL_TEXTURE0);
@@ -805,23 +727,17 @@ int main() {
         glEnable(GL_CULL_FACE);
 
 
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        if (programState->ImGuiEnabled)
+//            DrawImGui(programState);
 
 
 
+        // render skybox
 
-
-        if (programState->ImGuiEnabled)
-            DrawImGui(programState);
-
-
-
-        // draw skybox as last
-
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
         glm::mat4 skyboxView = glm::mat4(glm::mat3(programState->camera.GetViewMatrix())); // remove translation from the view matrix
-        glm::mat4 skyboxProjection = glm::perspective(glm::radians(programState->camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 skyboxProjection = glm::perspective(glm::radians(programState->camera.Zoom), (float)Width / (float)Height, 0.1f, 100.0f);
         skyboxShader.setMat4("view", skyboxView);
         skyboxShader.setMat4("projection", skyboxProjection);
         // skybox cube
@@ -868,10 +784,10 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-//
-//
-//    glDeleteVertexArrays(1, &VAO);
-//    glDeleteBuffers(1, &VBO);
+
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVBO);
@@ -906,6 +822,7 @@ void processInput(GLFWwindow *window) {
         programState->camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(RIGHT, deltaTime);
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -943,40 +860,40 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     programState->camera.ProcessMouseScroll(yoffset);
 }
 
-void DrawImGui(ProgramState *programState) {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-
-    {
-        static float f = 0.0f;
-        ImGui::Begin("Hello window");
-        ImGui::Text("Hello text");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
-
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight[0].constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight[0].linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight[0].quadratic, 0.05, 0.0, 1.0);
-        ImGui::End();
-    }
-
-    {
-        ImGui::Begin("Camera info");
-        const Camera& c = programState->camera;
-        ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
-        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
-        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
-        ImGui::End();
-    }
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
+//void DrawImGui(ProgramState *programState) {
+//    ImGui_ImplOpenGL3_NewFrame();
+//    ImGui_ImplGlfw_NewFrame();
+//    ImGui::NewFrame();
+//
+//
+//    {
+//        static float f = 0.0f;
+//        ImGui::Begin("Hello window");
+//        ImGui::Text("Hello text");
+//        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
+//        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
+//        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
+//        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
+//
+//        ImGui::DragFloat("pointLight.constant", &programState->pointLight[0].constant, 0.05, 0.0, 1.0);
+//        ImGui::DragFloat("pointLight.linear", &programState->pointLight[0].linear, 0.05, 0.0, 1.0);
+//        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight[0].quadratic, 0.05, 0.0, 1.0);
+//        ImGui::End();
+//    }
+//
+//    {
+//        ImGui::Begin("Camera info");
+//        const Camera& c = programState->camera;
+//        ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
+//        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
+//        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
+//        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
+//        ImGui::End();
+//    }
+//
+//    ImGui::Render();
+//    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+//}
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
@@ -987,6 +904,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS){
+        blink = !blink;
+    }
+    if(glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS){
+        jellyfishColor += 1;
+        jellyfishColor %= 3;
     }
 }
 
@@ -1070,95 +995,6 @@ void renderQuad()
     if (quadVAO == 0)
     {
 
-
-        float positions[] = {
-                -0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f,  0.5f, -0.5f,
-                0.5f,  0.5f, -0.5f,
-                -0.5f,  0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-
-                -0.5f, -0.5f,  0.5f,
-                0.5f, -0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
-                -0.5f, -0.5f,  0.5f,
-
-                -0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-                -0.5f, -0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
-
-                0.5f,  0.5f,  0.5f,
-                0.5f,  0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
-
-                -0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f,  0.5f,
-                0.5f, -0.5f,  0.5f,
-                -0.5f, -0.5f,  0.5f,
-                -0.5f, -0.5f, -0.5f,
-
-                -0.5f,  0.5f, -0.5f,
-                0.5f,  0.5f, -0.5f,
-                0.5f,  0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f, -0.5f
-        };
-
-
-        float texcoords[] = {
-                  0.0f, 0.0f,
-                  1.0f, 0.0f,
-                  1.0f, 1.0f,
-                  1.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 0.0f,
-
-                  0.0f, 0.0f,
-                  1.0f, 0.0f,
-                  1.0f, 1.0f,
-                  1.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 0.0f,
-
-                  1.0f, 0.0f,
-                  1.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 0.0f,
-                 1.0f, 0.0f,
-
-                  1.0f, 0.0f,
-                  1.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 1.0f,
-                  0.0f, 0.0f,
-                 1.0f, 0.0f,
-
-                  0.0f, 1.0f,
-                  1.0f, 1.0f,
-                  1.0f, 0.0f,
-                  1.0f, 0.0f,
-                  0.0f, 0.0f,
-                  0.0f, 1.0f,
-
-                  0.0f, 1.0f,
-                  1.0f, 1.0f,
-                  1.0f, 0.0f,
-                  1.0f, 0.0f,
-                  0.0f, 0.0f,
-                  0.0f, 1.0f
-        };
 
         // positions
         glm::vec3 pos1(-1.0f,  1.0f, 0.0f);
@@ -1246,4 +1082,43 @@ void renderQuad()
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+}
+
+void setShaderLights(Shader shader){
+    shader.setVec3("pointLights[0].position", programState->jellyfishPointLight.position);
+    shader.setVec3("pointLights[0].ambient", programState->jellyfishPointLight.ambient);
+    shader.setVec3("pointLights[0].diffuse", programState->jellyfishPointLight.diffuse);
+    shader.setVec3("pointLights[0].specular", programState->jellyfishPointLight.specular);
+    shader.setFloat("pointLights[0].constant", programState->jellyfishPointLight.constant);
+    shader.setFloat("pointLights[0].linear", programState->jellyfishPointLight.linear);
+    shader.setFloat("pointLights[0].quadratic", programState->jellyfishPointLight.quadratic);
+
+
+    shader.setVec3("pointLights[1].position", programState->anglerfishPointLight.position);
+    shader.setVec3("pointLights[1].ambient", programState->anglerfishPointLight.ambient);
+    shader.setVec3("pointLights[1].diffuse", programState->anglerfishPointLight.diffuse);
+    shader.setVec3("pointLights[1].specular", programState->anglerfishPointLight.specular);
+    shader.setFloat("pointLights[1].constant", programState->anglerfishPointLight.constant);
+    shader.setFloat("pointLights[1].linear", programState->anglerfishPointLight.linear);
+    shader.setFloat("pointLights[1].quadratic", programState->anglerfishPointLight.quadratic);
+
+    shader.setVec3("viewPosition", programState->camera.Position);
+    shader.setFloat("material.shininess", 32.0f);
+
+    shader.setVec3("dirLight.direction", programState->dirLight.direction);
+    shader.setVec3("dirLight.ambient", programState->dirLight.ambient);
+    shader.setVec3("dirLight.diffuse", programState->dirLight.diffuse);
+    shader.setVec3("dirLight.specular", programState->dirLight.specular);
+
+    shader.setVec3("spotLight.position",programState->camera.Position);
+    shader.setVec3("spotLight.direction", programState->camera.Front);
+    shader.setVec3("spotLight.ambient", programState->spotLight.ambient);
+    shader.setVec3("spotLight.diffuse", programState->spotLight.diffuse);
+    shader.setVec3("spotLight.specular", programState->spotLight.specular);
+    shader.setFloat("spotLight.constant", programState->spotLight.constant);
+    shader.setFloat("spotLight.linear", programState->spotLight.linear);
+    shader.setFloat("spotLight.quadratic", programState->spotLight.quadratic);
+    shader.setFloat("spotLight.cutOff", programState->spotLight.cutOff);
+    shader.setFloat("spotLight.outerCutOff", programState->spotLight.outerCutOff);
+
 }
