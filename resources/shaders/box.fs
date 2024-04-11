@@ -75,7 +75,8 @@ void main()
     // phase 3: spot light
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
 
-    FragColor = vec4(result, 1.0);
+   FragColor = vec4(result, 1.0);
+//     FragColor = vec4( vec3(texture(material.specular, TexCoords)), 1.0);
 }
 
 // calculates the color when using a directional light.
@@ -91,7 +92,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     // combine results
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = 3*light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords).rrr);
     return (ambient + diffuse + specular);
 }
 
@@ -112,7 +113,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     // combine results
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords).rrr);
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
@@ -140,9 +141,10 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     // combine results
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords).rrr);
     ambient *= attenuation * intensity;
     diffuse *= 2*attenuation * intensity;
-    specular *= 2*attenuation * intensity;
-    return (ambient + diffuse + specular);
+//     specular *= attenuation * intensity;
+    specular *= 0.8;
+    return (specular);
 }

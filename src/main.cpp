@@ -55,6 +55,7 @@ float lastFrame = 0.0f;
 
 bool blink = false;
 int jellyfishColor = 2;
+bool fall = false;
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -518,16 +519,22 @@ int main() {
 
 
 
-
+    float step = 0.0f;
     //********************************************************************************************************
     // RENDER LOOP
 
     while (!glfwWindowShouldClose(window)) {
+
         // per-frame time logic
         // --------------------
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        if(fall){
+            step-= 0.01;
+        }
+
 
         // input
         // -----
@@ -578,10 +585,11 @@ int main() {
         setShaderLights(boxShader);
 
         glm::mat4 model  = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-10.0f, -50.0f, -10.0f));
+        model = glm::translate(model,glm::vec3(-10.0f, 10.0f -50.0f + step, -10.0f));
         model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
+//        model = glm::rotate(model, sin(currentFrame), glm::vec3(0.3, 0.0, 0.7));
         model = glm::scale(model, glm::vec3(10.0f));
 
         boxShader.setMat4("model", model);
@@ -680,7 +688,7 @@ int main() {
         //render seashell
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-4.0f, -48.0f, -7.0f));
+        model = glm::translate(model,glm::vec3(-4.0f, 10.0 -48.0f + step, -7.0f));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::scale(model, glm::vec3(0.05f));
@@ -692,7 +700,7 @@ int main() {
         //render barrels
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-30.0f, -25.0f, -8.0f));
+        model = glm::translate(model,glm::vec3(-30.0f, 10.0f -25.0f + step, -8.0f));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
 
@@ -710,7 +718,7 @@ int main() {
         quadShader.setMat4("view", view);
         // render parallax-mapped quad
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-20.0f, -10.0f, -10.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, 10.0f -10.0f + step, -10.0f));
         model = glm::rotate(model, glm::radians(-60.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 1.0));
@@ -766,7 +774,7 @@ int main() {
         glassShader.setMat4("view", view);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-20.0f, -9.5f, -10.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, 10.0f -9.5f + step, -10.0f));
         model = glm::rotate(model, glm::radians(200.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(-15.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -928,6 +936,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if(glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS){
         jellyfishColor += 1;
         jellyfishColor %= 3;
+    }
+    if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS){
+        fall = !fall;
     }
 }
 
@@ -1117,7 +1128,7 @@ void setShaderLights(Shader &shader){
     shader.setFloat("pointLights[1].quadratic", programState->anglerfishPointLight.quadratic);
 
     shader.setVec3("viewPosition", programState->camera.Position);
-    shader.setFloat("material.shininess", 32.0f);
+    shader.setFloat("material.shininess", 100.0f);  //32
 
     shader.setVec3("dirLight.direction", programState->dirLight.direction);
     shader.setVec3("dirLight.ambient", programState->dirLight.ambient);
