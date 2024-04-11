@@ -14,3 +14,5 @@ Keys:
   B - svetlo iz ribe udičarke počinje da treperi
   
   C - meduza menja boju
+
+  F - smeće počinje da pada
