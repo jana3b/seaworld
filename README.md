@@ -1,7 +1,6 @@
-# Projekat iz predmeta Računarska grafika
+# Seaworld
 
-## Seaworld
-
+## Projekat iz predmeta Računarska grafika
 
 * Iz grupe A implementiran skybox
 * Iz grupe B implementiran normal i parallax mapping
