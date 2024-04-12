@@ -144,7 +144,7 @@ void ProgramState::LoadFromFile(std::string filename) {
 
 ProgramState *programState;
 
-void DrawImGui(ProgramState *programState);
+//void DrawImGui(ProgramState *programState);
 
 int main() {
     // glfw: initialize and configure
@@ -183,21 +183,21 @@ int main() {
 
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
-    if (programState->ImGuiEnabled) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
+//    if (programState->ImGuiEnabled) {
+//        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+//    }
 
 
-    //Init Imgui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void) io;
+//    //Init Imgui
+//    IMGUI_CHECKVERSION();
+//    ImGui::CreateContext();
+//    ImGuiIO &io = ImGui::GetIO();
+//    (void) io;
 
 
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330 core");
+//
+//    ImGui_ImplGlfw_InitForOpenGL(window, true);
+//    ImGui_ImplOpenGL3_Init("#version 330 core");
 
     // configure global opengl state
     // -----------------------------
@@ -585,7 +585,7 @@ int main() {
         setShaderLights(boxShader);
 
         glm::mat4 model  = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-10.0f, 10.0f -50.0f + step, -10.0f));
+        model = glm::translate(model,glm::vec3(-20.0f, 30.0f -40.0f + step, -20.0f));
         model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(40.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -666,9 +666,9 @@ int main() {
         //render shark
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.3*sin(0.2*currentFrame), 20.0f));
-        model = glm::rotate(model, glm::radians(- 3*cos(2*currentFrame)), glm::vec3(0.0, 1.0, 0.0));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::translate(model,glm::vec3(10.0f, 10.0f + 0.8*sin(0.2*currentFrame), 20.0f));
+        model = glm::rotate(model, glm::radians(- 4*cos(3*currentFrame)), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, glm::radians(-5.0f), glm::vec3(1.0, 0.0, 0.0));
 
         modelShader.setMat4("model", model);
         sharkModel.Draw(modelShader);
@@ -688,7 +688,7 @@ int main() {
         //render seashell
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-4.0f, 10.0 -48.0f + step, -7.0f));
+        model = glm::translate(model,glm::vec3(-14.0f, 30.0 -38.0f + step, -17.0f));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::scale(model, glm::vec3(0.05f));
@@ -700,7 +700,7 @@ int main() {
         //render barrels
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-30.0f, 10.0f -25.0f + step, -8.0f));
+        model = glm::translate(model,glm::vec3(-40.0f, 30.0f -25.0f + step, -18.0f));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
 
@@ -718,7 +718,7 @@ int main() {
         quadShader.setMat4("view", view);
         // render parallax-mapped quad
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-20.0f, 10.0f -10.0f + step, -10.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, 30.0f -10.0f + step, -15.0f));
         model = glm::rotate(model, glm::radians(-60.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0, 0.0, 1.0));
@@ -774,7 +774,7 @@ int main() {
         glassShader.setMat4("view", view);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-20.0f, 10.0f -9.5f + step, -10.0f));
+        model = glm::translate(model, glm::vec3(-20.0f, 30.0f -9.5f + step, -15.0f));
         model = glm::rotate(model, glm::radians(200.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, glm::radians(-15.0f), glm::vec3(0.0, 0.0, 1.0));
@@ -825,9 +825,9 @@ int main() {
 
     programState->SaveToFile("resources/program_state.txt");
     delete programState;
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+//    ImGui_ImplOpenGL3_Shutdown();
+//    ImGui_ImplGlfw_Shutdown();
+//    ImGui::DestroyContext();
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
@@ -1118,7 +1118,6 @@ void setShaderLights(Shader &shader){
     shader.setFloat("pointLights[0].linear", programState->jellyfishPointLight.linear);
     shader.setFloat("pointLights[0].quadratic", programState->jellyfishPointLight.quadratic);
 
-
     shader.setVec3("pointLights[1].position", programState->anglerfishPointLight.position);
     shader.setVec3("pointLights[1].ambient", programState->anglerfishPointLight.ambient);
     shader.setVec3("pointLights[1].diffuse", programState->anglerfishPointLight.diffuse);
@@ -1128,7 +1127,7 @@ void setShaderLights(Shader &shader){
     shader.setFloat("pointLights[1].quadratic", programState->anglerfishPointLight.quadratic);
 
     shader.setVec3("viewPosition", programState->camera.Position);
-    shader.setFloat("material.shininess", 100.0f);  //32
+    shader.setFloat("material.shininess", 128.0f);  //32
 
     shader.setVec3("dirLight.direction", programState->dirLight.direction);
     shader.setVec3("dirLight.ambient", programState->dirLight.ambient);
