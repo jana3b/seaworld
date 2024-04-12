@@ -7,7 +7,7 @@
 
 ### Keys:
 
-  * A,W,D,S - za kretanje kamere
-  * B - svetlo iz ribe udičarke počinje da treperi
+  * A, W, D, S - za kretanje kamere
+  * B - svetlo iz ribe udičarke počinje/prestaje da treperi
   * C - meduza menja boju
-  * F - smeće počinje da pada
+  * F - smeće počinje/prestaje da pada
