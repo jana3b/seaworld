@@ -1,18 +1,14 @@
-Projekat iz predmeta Računarska grafika
+# Projekat iz predmeta Računarska grafika
 
-Seaworld
+## Seaworld
 
 
-Iz grupe A implementiran cubemaps (skybox)
+* Iz grupe A implementiran skybox
+* Iz grupe B implementiran normal i parallax mapping
 
-Iz grupe B implementiran normal i parallax mapping
+## Keys:
 
-Keys:
-
-  A,W,D,S - za kretanje kamere
-  
-  B - svetlo iz ribe udičarke počinje da treperi
-  
-  C - meduza menja boju
-
-  F - smeće počinje da pada
+  * A,W,D,S - za kretanje kamere
+  * B - svetlo iz ribe udičarke počinje da treperi
+  * C - meduza menja boju
+  * F - smeće počinje da pada
