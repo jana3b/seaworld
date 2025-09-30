@@ -13,4 +13,4 @@
   * F - smeće počinje/prestaje da pada
 
 
-![Demo](https://github.com/user-attachments/assets/2fda6a81-75be-453f-b936-eb8772508a52)
+![Demo](https://github.com/user-attachments/assets/1b3f49de-2f23-47ad-aa93-5560cc120653)
